@@ -145,9 +145,8 @@ Description=qBittorrent-nox
 After=network.target
 
 [Service]
-User=qbittorrent
-ExecStart=/usr/bin/qbittorrent-nox -d
-ExecStop=/usr/bin/killall -w qbittorrent-nox
+Type=forking
+ExecStart=/usr/bin/qbittorrent-nox -d --webui-port=8080
 Restart=on-failure
 
 [Install]
