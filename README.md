@@ -26,6 +26,14 @@ To start the installation, follow these steps:
 3. Run the following command to make the script executable: `chmod +x setup.sh`
 4. Run the script with sudo privileges: `sudo ./setup.sh`
 
-## Useful scripts
+## Tips
 
-This repository also contains a couple of useful scripts in the `scripts` folder.
+The `scripts` folder contains some useful scripts for managing the applications. These scripts are not installed by default, but can be run via cronjobs or manually.
+
+Plex stores its metadata in `/var/lib/plexmediaserver/Library/Application Support/Plex Media Server`. This folder can be symlinked to an external drive to save space on the root partition. Just make sure to stop the Plex service first, then copy the folder to the external drive and symlink it back to the original location.
+1. `sudo systemctl stop plexmediaserver`
+2. Replace <external_path> - `sudo mv /var/lib/plexmediaserver/Library/Application\ Support/Plex\ Media\ Server /<external_path>/plexmediaserver`
+3. Replace <external_path> - `sudo ln -s /<external_path>/plexmediaserver /var/lib/plexmediaserver/Library/Application\ Support/Plex\ Media\ Server`
+4. Reboot or call `sudo systemctl start plexmediaserver`
+
+You can verify that the symlink is working with - `ls -l /var/lib/plexmediaserver/Library/Application\ Support/Plex\ Media\ Server`
