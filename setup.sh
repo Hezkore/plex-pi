@@ -70,6 +70,8 @@ sudo useradd -r -s /usr/sbin/nologin radarr
 
 echo
 echo "Setting ownership and permissions for Radarr..."
+sudo mkdir -p /var/lib/radarr
+sudo chown -R radarr:radarr /var/lib/radarr
 sudo chown -R radarr:radarr /opt/radarr
 
 echo
@@ -83,7 +85,7 @@ After=network.target
 User=radarr
 Group=radarr
 Type=simple
-ExecStart=/opt/radarr/Radarr -nobrowser -data=/opt/radarr
+ExecStart=/opt/radarr/Radarr -nobrowser -data=/var/lib/radarr
 Restart=always
 
 [Install]
@@ -107,6 +109,8 @@ sudo useradd -r -s /usr/sbin/nologin prowlarr
 
 echo
 echo "Setting ownership and permissions for Prowlarr..."
+sudo mkdir -p /var/lib/prowlarr
+sudo chown -R prowlarr:prowlarr /var/lib/prowlarr
 sudo chown -R prowlarr:prowlarr /opt/prowlarr
 
 echo
@@ -120,7 +124,7 @@ After=network.target
 User=prowlarr
 Group=prowlarr
 Type=simple
-ExecStart=/opt/prowlarr/Prowlarr -nobrowser -data=/opt/prowlarr
+ExecStart=/opt/prowlarr/Prowlarr -nobrowser -data=/var/lib/prowlarr
 Restart=always
 
 [Install]
