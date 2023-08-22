@@ -198,6 +198,7 @@ echo "==================================="
 # Display service URLs and instructions
 echo
 echo "Service URLs and Instructions:"
+echo "Plex: http://$(hostname -I | cut -d' ' -f1):32400/web"
 echo "Radarr: http://$(hostname -I | cut -d' ' -f1):7878"
 echo "Sonarr: http://$(hostname -I | cut -d' ' -f1):8989"
 echo "Prowlarr: http://$(hostname -I | cut -d' ' -f1):9696"
