@@ -150,6 +150,7 @@ After=network.target
 
 [Service]
 Type=forking
+UMask=0000
 ExecStart=/usr/bin/qbittorrent-nox -d --webui-port=8080
 Restart=on-failure
 
