@@ -12,12 +12,13 @@ SONARR_URL="http://localhost:8989"
 
 # Function to trigger a search for missing media in Radarr
 force_search_radarr() {
-	curl -sX POST -H "User-Agent: BASH" -H "X-Api-Key: $API_KEY" "$RADARR_URL/api/v3/command" -d '{"name":"moviesSearch"}'
+	curl -sX POST -H "Content-Type: application/json" -H "X-Api-Key: $API_KEY" "$RADARR_URL/api/v3/command" -d '{"name":"cutOffUnmetMoviesSearch","filterKey":"monitored","filterValue":"true"}'
+	curl -sX POST -H "Content-Type: application/json" -H "X-Api-Key: $API_KEY" "$RADARR_URL/api/v3/command" -d '{"name":"missingMoviesSearch","filterKey":"status","filterValue":"released"}'
 }
 
 # Function to trigger a search for missing media in Sonarr
 force_search_sonarr() {
-	curl -sX POST -H "User-Agent: BASH" -H "X-Api-Key: $API_KEY" "$SONARR_URL/api/command" -d '{"name":"missingsearch"}'
+	curl -sX POST -H "Content-Type: application/json" -H "X-Api-Key: $API_KEY" "$SONARR_URL/api/v3/command" -d '{"name":"missingEpisodeSearch","filterKey":"monitored","filterValue":"true"}'
 }
 
 main() {
