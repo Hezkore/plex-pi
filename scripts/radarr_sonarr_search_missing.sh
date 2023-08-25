@@ -3,9 +3,9 @@
 # Forces a search for missing media in Radarr or Sonarr
 #
 # Start with either "--radarr/-r" or "--sonarr/-s" and the API key "--key=<RADARR/SONARR_API_KEY>"
-# Enable this script as a crontab job every day at around 04:30
-# 30 4 * * * /path/to/your/script.sh --radarr --key=<YOUR_RADARR_API_KEY> > /dev/null 2>&1
-# 31 4 * * * /path/to/your/script.sh --sonarr --key=<YOUR_SONARR_API_KEY> > /dev/null 2>&1
+# Enable this script as a crontab job every day at around 05:00
+# 0 5 * * * /path/to/your/script.sh --radarr --key=<YOUR_RADARR_API_KEY> > /dev/null 2>&1
+# 5 5 * * * /path/to/your/script.sh --sonarr --key=<YOUR_SONARR_API_KEY> > /dev/null 2>&1
 
 RADARR_URL="http://localhost:7878"
 SONARR_URL="http://localhost:8989"

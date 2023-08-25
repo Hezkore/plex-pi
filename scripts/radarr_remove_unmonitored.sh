@@ -3,8 +3,8 @@
 # Removes any unmonitored Radarr movies, both from disk and database
 #
 # Set Radarr to only unmonitor movies not in any list, and remove empty folders
-# Enable this script as a crontab job at Monday 5 in the morning:
-# 0 5 * * 1 /path/to/your/script.sh --key=<YOUR_RADARR_API_KEY> > /dev/null 2>&1
+# Enable this script as a crontab job at Monday 4 in the morning:
+# 0 4 * * 1 /path/to/your/script.sh --key=<YOUR_RADARR_API_KEY> > /dev/null 2>&1
 
 HOST="http://localhost:7878"
 API_KEY=""
