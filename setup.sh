@@ -27,7 +27,7 @@ sudo apt upgrade -y
 # Install required dependencies
 echo
 echo "Installing dependencies..."
-sudo apt install -y apt-transport-https curl gnupg
+sudo apt install -y apt-transport-https curl gnupg jq
 
 
 # Install Plex
