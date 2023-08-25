@@ -4,11 +4,9 @@
 #
 # Run with "--time/-t" to set time threshold in hours, defaults to 6
 # Enable this script as a crontab job every hour:
-# 0 * * * * /path/to/your/script.sh > /dev/null 2>&1
+# 0 * * * * /path/to/your/script.sh --username=<YOUR_QBITTORRENT_USERNAME> --password=<YOUR_QBITTORRENT_PASSWORD> > /dev/null 2>&1
 
 QB_URL="http://localhost:8080"
-QB_USERNAME="<YOUR_QBITTORRENT_USERNAME>"
-QB_PASSWORD="<YOUR_QBITTORRENT_PASSWORD>"
 DEFAULT_THRESHOLD=6  # Default time threshold in hours
 
 # Fetch list of torrents from qBittorrent Web API
@@ -22,47 +20,57 @@ remove_qb_torrent() {
 }
 
 main() {
+    for i in "$@"
+    do
+        case $i in
+            --username=*)
+            QB_USERNAME="${i#*=}"
+            shift
+            ;;
+            --password=*)
+            QB_PASSWORD="${i#*=}"
+            shift
+            ;;
+            -t=*|--time=*)
+            DEFAULT_THRESHOLD="${i#*=}"
+            shift
+            ;;
+            *)
+            echo "Unknown parameter: $1"
+            exit 1
+            ;;
+        esac
+    done
+
     torrents=$(fetch_qb_torrents)
 
     if [ -z "$torrents" ]; then
         echo "No active torrents found."
         exit 0
     fi
-	
+
     time_threshold=${DEFAULT_THRESHOLD}
-    while [ "$#" -gt 0 ]; do
-        case $1 in
-            -t|--time) time_threshold="$2"; shift; shift ;;
-            *) echo "Unknown parameter: $1"; exit 1 ;;
-        esac
-    done
-	
-    total_torrents=$(echo "$torrents" | wc -l)
-    removed=0
-    while IFS= read -r torrent_info; do
-        hash=$(echo "$torrent_info" | cut -d'"' -f4)
-        state=$(echo "$torrent_info" | cut -d',' -f6)
-        active_seconds=$(echo "$torrent_info" | awk -F',' '{ print $13 }')
 
-        # Convert active seconds to hours
-        active_hours=$((active_seconds / 3600))
+    echo "Removing torrents active for more than $time_threshold hours..."
 
-        if [[ "$active_hours" -ge "$time_threshold" && "$state" != "\"completed\"" ]]; then
-            echo "Removing torrent with hash $hash (active for $active_hours hours)"
+    # Loop through each torrent in JSON
+    for i in $(jq -r '.[] | @base64' <<< "$torrents"); do
+        _jq() {
+            echo "${i}" | base64 --decode | jq -r "${1}"
+        }
+
+        added_on=$(_jq '.added_on')
+        time_diff=$(( ($(date +%s) - $added_on) / 3600 ))
+
+        if [ $time_diff -ge $time_threshold ]; then
+            hash=$(_jq '.hash')
+            name=$(_jq '.name')
+            echo "Removing $name..."
             remove_qb_torrent "$hash"
-            removed=$((removed + 1))
         fi
-    done <<< "$torrents"
+    done
 
-    if [ $removed -gt 0 ]; then
-        echo "Removed $removed torrents active for more than $time_threshold hours."
-    else
-        echo "No torrents were removed."
-    fi
-
-    echo "Total active torrents: $total_torrents"
+    echo "Torrent removal complete."
 }
 
-if ! main "$@"; then
-    echo "Error: Authentication failure. Please check your username and password."
-fi
+main "$@"
