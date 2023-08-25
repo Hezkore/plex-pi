@@ -9,21 +9,6 @@
 HOST="http://localhost:7878"
 API_KEY=""
 
-# Fetch movie data from Radarr API
-fetch_radarr_movies() {
-	curl -sH "User-Agent: BASH" -H "X-Api-Key: $API_KEY" "$HOST/api/v3/movie"
-}
-
-# Delete a movie from Radarr database
-delete_movie_from_database() {
-	curl -sX DELETE -H "User-Agent: BASH" -H "X-Api-Key: $API_KEY" "$HOST/api/v3/movie/$1"
-}
-
-# Delete a movie file from drive
-delete_movie_from_drive() {
-	curl -sX DELETE -H "User-Agent: BASH" -H "X-Api-Key: $API_KEY" "$HOST/api/v3/moviefile/$1"
-}
-
 main() {
 	for i in "$@"
 	do
@@ -34,40 +19,34 @@ main() {
 			;;
 		esac
 	done
-
+	
 	if [ -z "$API_KEY" ]; then
 		echo "Error: API key is missing. Usage: $0 --key=<YOUR_RADARR_API_KEY>"
 		exit 1
 	fi
+	
+	echo "Fetching unmonitored movies..."
+	ids=$(curl --silent $HOST/api/v3/movie -X GET -H "X-Api-Key: $API_KEY" \
+		| jq '[.[] | select(.monitored == false) | {id: .id, file_id: .movieFile.id}]')
 
-	json=$(fetch_radarr_movies)
-
-	# Check if JSON response is empty
-	if [ -z "$json" ]; then
-		echo "Error: Unable to fetch movie data from Radarr API."
-		exit 1
-	fi
-
+	total=$(echo $ids | jq length)
+	echo "Removing $total unmonitored movies..."
 	removed=0
-	total_movies=$(jq '. | length' <<< "$json") # Total number of movies
-
-	# Loop through each movie in JSON
-	for i in $(seq 0 $(($total_movies - 1))); do
-		monitored=$(jq -r ".[$i].monitored" <<< "$json")
-		in_lists=$(jq -r ".[$i].inLists" <<< "$json")
-		path=$(jq -r ".[$i].path" <<< "$json")
-		id=$(jq -r ".[$i].id" <<< "$json")
-		title=$(jq -r ".[$i].title" <<< "$json")
-
-		if [ "$monitored" == "false" ] && [ "$in_lists" == "[]" ]; then
-			echo "Removing $title..."
-			delete_movie_from_database "$id"
-			delete_movie_from_drive "$id"
-			removed=$((removed + 1))
-			if [ -d "$path" ]; then
-				rmdir "$path"
-			fi
+	for id in $(echo $ids | jq -r '.[] | @json'); do
+		_jq() {
+			echo ${id} | jq -r ${1}
+		}
+		movie_id=$(_jq '.id')
+		file_id=$(_jq '.file_id')
+		echo "Movie $removed out of $total"
+		# Only if file_id is above 0
+		if [ ! -z "$file_id" ] && [ "$file_id" != "null" ] && [ $file_id -gt 0 ]; then
+			echo "Deleting from drive via ID $file_id" 
+			curl -sX DELETE -H "User-Agent: BASH" -H "X-Api-Key: $API_KEY" "$HOST/api/v3/moviefile/$file_id"
 		fi
+		echo "Deleting from database via ID $movie_id"
+		curl -sX DELETE -H "User-Agent: BASH" -H "X-Api-Key: $API_KEY" "$HOST/api/v3/movie/$movie_id"
+		removed=$((removed+1))
 	done
 
 	echo "Removed $removed unmonitored movies."
